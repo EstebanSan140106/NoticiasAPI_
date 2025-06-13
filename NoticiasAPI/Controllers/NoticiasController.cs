@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using NoticiasAPI.Context;
+using NoticiasAPI.Entities;
 
 namespace NoticiasAPI.Controllers
 {
@@ -6,139 +9,95 @@ namespace NoticiasAPI.Controllers
     [ApiController]
     public class NoticiasController : ControllerBase
     {
-        private readonly INoticiaService _noticiaService;
+        private readonly AppDbContext _context;
 
-        public NoticiasController(INoticiaService noticiaService)
+        public NoticiasController(AppDbContext context)
         {
-            _noticiaService = noticiaService;
+            _context = context;
         }
 
         // GET: api/Noticias
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Noticia>>> GetNoticias()
         {
-            try
-            {
-                var noticias = await _noticiaService.GetAllNoticiasAsync();
-                return Ok(noticias);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al obtener las noticias: {ex.Message}");
-            }
+            return await _context.Noticias.Where(n => n.Activa).ToListAsync();
         }
 
         // GET: api/Noticias/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Noticia>> GetNoticia(int id)
         {
-            try
-            {
-                var noticia = await _noticiaService.GetNoticiaByIdAsync(id);
+            var noticia = await _context.Noticias.FindAsync(id);
 
-                if (noticia == null)
-                {
-                    return NotFound($"Noticia con ID {id} no encontrada");
-                }
-
-                return Ok(noticia);
-            }
-            catch (Exception ex)
+            if (noticia == null || !noticia.Activa)
             {
-                return StatusCode(500, $"Error al obtener la noticia: {ex.Message}");
-            }
-        }
-
-        // POST: api/Noticias
-        [HttpPost]
-        public async Task<ActionResult<Noticia>> CreateNoticia([FromBody] Noticia noticia)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
+                return NotFound();
             }
 
-            try
-            {
-                await _noticiaService.CreateNoticiaAsync(noticia);
-                return CreatedAtAction(nameof(GetNoticia), new { id = noticia.Id }, noticia);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al crear la noticia: {ex.Message}");
-            }
+            return noticia;
         }
 
         // PUT: api/Noticias/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateNoticia(int id, [FromBody] Noticia noticia)
+        public async Task<IActionResult> PutNoticia(int id, Noticia noticia)
         {
             if (id != noticia.Id)
             {
-                return BadRequest("El ID de la noticia no coincide");
+                return BadRequest();
             }
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            _context.Entry(noticia).State = EntityState.Modified;
 
             try
             {
-                var existingNoticia = await _noticiaService.GetNoticiaByIdAsync(id);
-                if (existingNoticia == null)
-                {
-                    return NotFound($"Noticia con ID {id} no encontrada");
-                }
-
-                await _noticiaService.UpdateNoticiaAsync(noticia);
-                return NoContent();
+                await _context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (DbUpdateConcurrencyException)
             {
-                return StatusCode(500, $"Error al actualizar la noticia: {ex.Message}");
+                if (!NoticiaExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
             }
+
+            return NoContent();
+        }
+
+        // POST: api/Noticias
+        [HttpPost]
+        public async Task<ActionResult<Noticia>> PostNoticia(Noticia noticia)
+        {
+            noticia.FechaPublicacion = DateTime.Now;
+            _context.Noticias.Add(noticia);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetNoticia", new { id = noticia.Id }, noticia);
         }
 
         // DELETE: api/Noticias/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteNoticia(int id)
         {
-            try
+            var noticia = await _context.Noticias.FindAsync(id);
+            if (noticia == null)
             {
-                var noticia = await _noticiaService.GetNoticiaByIdAsync(id);
-                if (noticia == null)
-                {
-                    return NotFound($"Noticia con ID {id} no encontrada");
-                }
+                return NotFound();
+            }
 
-                await _noticiaService.DeleteNoticiaAsync(id);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al eliminar la noticia: {ex.Message}");
-            }
+            // Soft delete
+            noticia.Activa = false;
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
-    }
 
-    // Noticia model (for reference)
-    public class Noticia
-    {
-        public int Id { get; set; }
-        public string Titulo { get; set; }
-        public string Contenido { get; set; }
-        public DateTime FechaPublicacion { get; set; }
-        public string Autor { get; set; }
-    }
-
-    // Service interface (for reference)
-    public interface INoticiaService
-    {
-        Task<IEnumerable<Noticia>> GetAllNoticiasAsync();
-        Task<Noticia> GetNoticiaByIdAsync(int id);
-        Task CreateNoticiaAsync(Noticia noticia);
-        Task UpdateNoticiaAsync(Noticia noticia);
-        Task DeleteNoticiaAsync(int id);
+        private bool NoticiaExists(int id)
+        {
+            return _context.Noticias.Any(e => e.Id == id);
+        }
     }
 }

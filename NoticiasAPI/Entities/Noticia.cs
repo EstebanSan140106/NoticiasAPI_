@@ -3,12 +3,12 @@
     public class Noticia
     {
         public int Id { get; set; }
-        public int CategoriaId { get; set; }
-        public string Titulo { get; set; }
-        public string Contenido { get; set; }
+        public string Titulo { get; set; } = string.Empty;
+        public string Contenido { get; set; } = string.Empty;
         public DateTime FechaPublicacion { get; set; }
-        public string Autor { get; set; }
+        public string Autor { get; set; } = string.Empty;
+        public string Categoria { get; set; } = string.Empty;
         public string Medio { get; set; }
-        public string Categoria { get; set; }
+        public bool Activa { get; set; } = true;
     }
 }
