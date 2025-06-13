@@ -1,0 +1,65 @@
+@page
+@model NoticiasWebApp.Pages.Noticias.IndexModel // Asegúrate de que el modelo apunte a tu clase Code-behind
+@{
+    ViewData["Title"] = "Lista de Noticias";
+}
+
+<h1>Lista de Noticias</h1>
+
+<p>
+    <a asp-page="Create">Crear Nueva Noticia</a>
+</p>
+
+<form method="get">
+    <div class="form-actions no-color">
+        <p>
+            Buscar: <input type="text" asp-for="SearchTerm" />
+            <input type="submit" value="Buscar" class="btn btn-primary" /> |
+            <a asp-page="./Index">Mostrar todas las noticias</a>
+        </p>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Título</th>
+            <th>Contenido</th>
+            <th>Fecha de Publicación</th>
+            <th>Autor</th>
+            <th>Categoría</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Noticias)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Titulo)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Contenido)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FechaPublicacion)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Autor)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Categoria)
+                </td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@item.Id">Editar</a> |
+                    <a asp-page="./Details" asp-route-id="@item.Id">Detalles</a> |
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta noticia?');">
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<link rel="stylesheet" href="~/css/site.css" /> ```

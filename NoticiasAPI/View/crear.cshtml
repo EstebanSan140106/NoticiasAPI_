@@ -1,0 +1,39 @@
+@page
+@model NoticiasWebApp.Pages.Noticias.CreateModel
+@{
+    ViewData["Title"] = "Crear Noticia";
+}
+
+<h1>Crear Nueva Noticia</h1>
+
+<form method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="NoticiaInput.Titulo" class="control-label"></label>
+        <input asp-for="NoticiaInput.Titulo" class="form-control" />
+        <span asp-validation-for="NoticiaInput.Titulo" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NoticiaInput.Contenido" class="control-label"></label>
+        <textarea asp-for="NoticiaInput.Contenido" class="form-control" rows="5"></textarea>
+        <span asp-validation-for="NoticiaInput.Contenido" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NoticiaInput.Autor" class="control-label"></label>
+        <input asp-for="NoticiaInput.Autor" class="form-control" />
+        <span asp-validation-for="NoticiaInput.Autor" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="NoticiaInput.Categoria" class="control-label"></label>
+        <input asp-for="NoticiaInput.Categoria" class="form-control" />
+        <span asp-validation-for="NoticiaInput.Categoria" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Crear" class="btn btn-primary" />
+        <a asp-page="Index" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
